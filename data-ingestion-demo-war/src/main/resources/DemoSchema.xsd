@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/DemoSchema"
+    xmlns:xs="http://www.example.org/DemoSchema" elementFormDefault="qualified">
+  <element name="movie" type="xs:Movie"/> 
+        <complexType name="ObjectInfo">
+        	    <sequence>
+		        <element name="id" type="string" />
+		        <element name="image-url" type="string" nillable="true"/>
+		        <element name="priority" type="int" nillable="true"/>		
+		        <element name="localized" type="xs:Localized" nillable="true"/>		        
+		        </sequence>
+        </complexType>
+        
+          <!--localized-->
+	   <complexType name="Localized">
+	         <sequence>
+	            <element name="lang" type="xs:Lang" minOccurs="0"  maxOccurs="unbounded" nillable="true"/>
+	          </sequence>
+	     </complexType>
+	  <!--lang-->
+	   <complexType name="Lang">
+	     <sequence>
+	        <element name="code" type="string" />  
+	        <element name="name" type="string" nillable="true"/>  
+	        <element name="attribute" type="string" nillable="true"/>  
+	        <element name="description" type="string" nillable="true"/>
+	     </sequence>
+	   </complexType>
+        <complexType name="Movie">
+        	<sequence>
+        		<element name="object-Infos" type="xs:ObjectInfos" maxOccurs="1" minOccurs="0"></element>
+        	</sequence>
+        </complexType>
+
+        <complexType name="ObjectInfos">
+        	<sequence>
+        		<element name="object-info" type="xs:ObjectInfo" maxOccurs="unbounded" minOccurs="0"></element>
+        	</sequence>
+        </complexType>
+</schema>

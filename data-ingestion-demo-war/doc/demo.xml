@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<movie xmlns="http://www.example.org/DemoSchema">
+    <object-Infos>
+        <object-info>
+            <id>bf435848-a165-4361-a2ad-13c23fa0b3ff</id>
+            <image-url>20141211064023715.png</image-url>
+            <priority>666</priority>               
+            <localized>
+                <lang>
+                    <code>en</code>
+                    <name>3333</name>
+                    <attribute>555</attribute>
+                    <description>555</description>                   
+                </lang>
+            </localized>
+           
+        </object-info>
+        <object-info>
+            <id>bf435848-a165-4361-a2ad-13c23fa0b3</id>
+            <image-url>20141211064023715.png</image-url>
+            <priority>140</priority>                    
+            <localized>
+                <lang>
+                    <code>en</code>
+                    <name>Sintel_en</name>
+                    <attribute>Hero_en</attribute>
+                    <description>Hero_en</description>                    
+                </lang>
+                <lang>
+                    <code>zh</code>
+                    <name>Sintel_zh</name>
+                    <attribute>Hero_zh</attribute>
+                    <description>Hero_zh</description>                    
+                </lang>
+            </localized>            
+        </object-info>
+       </object-Infos>
+</movie>
