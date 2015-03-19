@@ -1,0 +1,43 @@
+/*
+ * Copyright 2005-2012 Schlichtherle IT Services
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
+package de.schlichtherle.license;
+
+import java.rmi.Remote;
+
+/**
+ * Provides remote license creation services.
+ *
+ * @author Christian Schlichtherle
+ * @version $Id$
+ */
+public interface LicenseCreator extends Remote {
+
+    /**
+     * Initializes and validates the license content, creates a new signed
+     * license certificate for it and compresses, encrypts and returns it
+     * as a license key.
+     * <p>
+     * As a side effect, the given license {@code content} may be initialized
+     * with some reasonable defaults unless the respective properties have
+     * already been set.
+     *
+     * @param content The license content
+     *        - may <em>not</em> be {@code null}.
+     *
+     * @return The license key
+     *         - {@code null} is never returned.
+     *
+     * @throws Exception An instance of a subclass of this class for various
+     *         reasons.
+     *         Note that you should always use
+     *         {@link Throwable#getLocalizedMessage()} to get a (possibly
+     *         localized) meaningful detail message.
+     */
+    byte[] create(LicenseContent content) throws Exception;
+}

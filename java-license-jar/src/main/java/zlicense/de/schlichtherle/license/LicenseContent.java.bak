@@ -1,0 +1,444 @@
+/*
+ * Copyright 2005-2012 Schlichtherle IT Services
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
+package de.schlichtherle.license;
+
+import de.schlichtherle.xml.PersistenceService;
+import java.beans.*;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Date;
+import javax.security.auth.x500.X500Principal;
+
+/**
+ * This non-visual JavaBean represents the content of an application license.
+ * This encompasses information about which license subjects may be licensed by
+ * which kind of license consumers and their quantity (per kind and a maximum
+ * total). In addition, an issue time stamp and optional information about
+ * the license holder is contained.
+ * <p>
+ * This class is <em>not</em> trusted by the license notary.
+ * As a result, the license manager validates and verifies the state of this
+ * object itself whenever necessary.
+ * <p>
+ * In general, all properties may be {@code null} which indicates that this
+ * information is not (yet) available and should be ignored.
+ * Note however that validation may fail if certain properties are not
+ * available.
+ * <p>
+ * Subclasses are encouraged to use the {@code firePropertyChange} methods
+ * to notify all listeners of all property events.
+ * Subclasses <em>must</em> also implement the JavaBean pattern in order to
+ * be usable.
+ * <p>
+ * Note that the property change listeners are <em>not</em> persistet when
+ * using {@link ObjectOutputStream} or {@link XMLEncoder}.
+ *
+ * @see     LicenseNotary
+ * @author  Christian Schlichtherle
+ * @version $Id$
+ */
+ //证书内容类
+public class LicenseContent implements Serializable, Cloneable {
+    
+    //new一个LicenseContent实例前
+    //证书文件一般保存为X.500 Principals格式
+    static {
+        // With a little help of a persistence delegate we can even make
+        // X.500 Principals persistent.
+        PersistenceService.setPersistenceDelegate(
+                X500Principal.class,
+                //因为X.500 Principals未提供默认构造器，所以需要设置此持久化委托
+                //只是为了能够利用xmlencoder，除此之外毫无意义
+                new DefaultPersistenceDelegate(new String[] { "name" })); // NOI18N
+    }
+    private static final long serialVersionUID = 1L;
+    //证书的持有者
+    private X500Principal holder;
+    //证书的发布者
+    private X500Principal issuer;
+    private String subject;
+    //颁发日期
+    private Date issued;
+    //有效期开始
+    private Date notBefore;
+    //有效期结束
+    private Date notAfter;
+    //下面这些属性并不重要
+    private String consumerType;
+    private int consumerAmount = 1;
+    private String info;
+    //留下扩展的可能
+    private Object extra;
+
+    /**
+     * Utility field used by bound properties.
+     */
+     //属性改变监听支持类
+    private transient PropertyChangeSupport propertySupport;
+
+    /**
+     * Returns a clone of this instance.
+     * The returned clone shares the value of the {@code extra} property with
+     * this instance.
+     *
+     * @deprecated Not required.
+     */
+    protected Object clone() {
+        try {
+            return (LicenseContent) super.clone();
+        } catch (CloneNotSupportedException exc) {
+            throw new AssertionError(exc);
+        }
+    }
+
+    /**
+     * Returns the legal entity (i.e. the user) to which the license is granted
+     * by the issuer.
+     * The default is {@code null}.
+     *
+     * @see #getIssuer()
+     * @return Value of property {@code holder}.
+     */
+    public X500Principal getHolder() {
+        return this.holder;
+    }
+
+    /**
+     * Sets the legal entity (i.e. the user) to which the license is granted
+     * by the issuer.
+     *
+     * @param holder New value of bound property {@code holder}.
+     * @see #setIssuer(X500Principal)
+     */
+    public void setHolder(X500Principal holder) {
+        X500Principal oldHolder = this.holder;
+        this.holder = holder;
+        firePropertyChange("holder", oldHolder, holder); // NOI18N
+    }
+
+    /**
+     * Returns the legal entity which grants the license to the holder.
+     * The default is {@code null}.
+     *
+     * @return Value of property {@code issuer}.
+     * @see #getHolder()
+     */
+    public X500Principal getIssuer() {
+        return this.issuer;
+    }
+
+    /**
+     * Sets the legal entity which grants the license to the holder.
+     *
+     * @param issuer New value of bound property {@code issuer}.
+     * @see #setHolder(X500Principal)
+     */
+    public void setIssuer(X500Principal issuer) {
+        X500Principal oldIssuer = this.issuer;
+        this.issuer = issuer;
+        firePropertyChange("issuer", oldIssuer, issuer); // NOI18N
+    }
+
+    /**
+     * Returns the abstract description of the entity which needs to be
+     * licensed in order for it to be used - it could be the name of a
+     * software application like e.g. "TrueMirror".
+     * The default is {@code null}.
+     *
+     * @return Value of property {@code subject}.
+     */
+    public String getSubject() {
+        return this.subject;
+    }
+
+    /**
+     * Sets the abstract description of the entity which needs to be
+     * licensed in order for it to be used - it could be the name of a
+     * software application like e.g. "TrueMirror".
+     *
+     * @param subject New value of bound property {@code subject}.
+     */
+    public void setSubject(String subject) {
+        String oldSubject = this.subject;
+        this.subject = subject;
+        firePropertyChange("subject", oldSubject, subject); // NOI18N
+    }
+
+    private static Date clone(final Date date) {
+        return null == date ? date : (Date) date.clone();
+    }
+
+    /**
+     * Returns the time when the license represented by this license
+     * content has been issued.
+     * The default is {@code null}.
+     *
+     * @return Value of property {@code issued}.
+     * @see System#currentTimeMillis()
+     */
+    public Date getIssued() {
+        return clone(this.issued);
+    }
+
+    /**
+     * Sets the time when the license represented by this license
+     * content has been issued.
+     *
+     * @param issued New value of bound property {@code issued}.
+     */
+    public void setIssued(final Date issued) {
+        final Date oldIssued = this.issued;
+        this.issued = clone(issued);
+        firePropertyChange("issued", clone(oldIssued), clone(issued)); // NOI18N
+    }
+
+    /**
+     * Returns the time when the license begins to be valid.
+     * The default is {@code null}.
+     *
+     * @return Value of property {@code notBefore}.
+     */
+    public Date getNotBefore() {
+        return clone(this.notBefore);
+    }
+
+    /**
+     * Sets the time when the license begins to be valid.
+     *
+     * @param notBefore New value of bound property {@code notBefore}.
+     */
+    public void setNotBefore(final Date notBefore) {
+        final Date oldNotBefore = this.notBefore;
+        this.notBefore = clone(notBefore);
+        firePropertyChange("notBefore", clone(oldNotBefore), clone(notBefore)); // NOI18N
+    }
+
+    /**
+     * Returns the time when the license ends to be valid.
+     * The default is {@code null}.
+     *
+     * @return Value of property {@code notAfter}.
+     */
+    public Date getNotAfter() {
+        return clone(this.notAfter);
+    }
+
+    /**
+     * Sets the time when the license ends to be valid.
+     *
+     * @param notAfter New value of bound property {@code notAfter}.
+     */
+    public void setNotAfter(final Date notAfter) {
+        final Date oldNotAfter = this.notAfter;
+        this.notAfter = clone(notAfter);
+        firePropertyChange("notAfter", clone(oldNotAfter), clone(notAfter)); // NOI18N
+    }
+
+    /**
+     * Returns the type of entity which needs to license the license subject
+     * in order to use it. This could be a computer or a user or something
+     * else.
+     * The default is {@code null}.
+     *
+     * @return Value of property {@code consumerType}.
+     */
+    public String getConsumerType() {
+        return this.consumerType;
+    }
+
+    /**
+     * Sets the type of entity which needs to license the license subject
+     * in order to use it. This could be a computer or a user or something
+     * else.
+     *
+     * @param consumerType New value of bound property {@code consumerType}.
+     */
+    public void setConsumerType(String consumerType) {
+        String oldConsumerType = this.consumerType;
+        this.consumerType = consumerType;
+        firePropertyChange("consumerType", oldConsumerType, consumerType); // NOI18N
+    }
+
+    /**
+     * Returns the amount of consumers which are allowed to license the
+     * subject with this license.
+     * The default is {@code 1}.
+     *
+     * @return Value of property {@code consumerAmount}.
+     */
+    public int getConsumerAmount() {
+        return this.consumerAmount;
+    }
+
+    /**
+     * Sets the amount of consumers which are allowed to license the
+     * subject with this license.
+     *
+     * @param consumerAmount New value of bound property {@code consumerAmount}.
+     */
+    public void setConsumerAmount(int consumerAmount) {
+        int oldConsumerAmount = this.consumerAmount;
+        this.consumerAmount = consumerAmount;
+        firePropertyChange("consumerAmount", new Integer(oldConsumerAmount), new Integer(consumerAmount)); // NOI18N
+    }
+
+    /**
+     * Returns the value of the property {@code info}.
+     * This property may be used by applications to store public license
+     * text which gets displayed to the user for informational purposes.
+     * The default is {@code null}.
+     */
+    public String getInfo() {
+        return this.info;
+    }
+
+    /**
+     * Sets the value of the property {@code info}.
+     * This property may be used by applications to store public license
+     * text which gets displayed to the user for informational purposes.
+     *
+     * @param info New value of bound property {@code info}.
+     */
+    public void setInfo(String info) {
+        String oldInfo = this.info;
+        this.info = info;
+        firePropertyChange("info", oldInfo, info); // NOI18N
+    }
+    
+    /**
+     * Returns the value of the property extra.
+     * This property may be used by applications to store arbitrary private
+     * data which is not displayed to the user or checked by this library.
+     * The default is {@code null}.
+     *
+     * @since The TrueLicense Library Collection 1.19.
+     */
+    public Object getExtra() {
+        return this.extra;
+    }
+    
+    /**
+     * Sets the value of the property extra.
+     * This property may be used by applications to store arbitrary private
+     * data which is not displayed to the user or checked by this library.
+     * <p>
+     * <b>Warning:</b> If you use this property, versions of the TrueLicense
+     * Library Collection prior to 1.19 will fail to install or verify the
+     * generated license key with an {@link AssertionError}, which usually
+     * causes the application to terminate abnormally!
+     * <p>
+     * (Since version 1.19, if an unknown property is found, a
+     * {@link de.schlichtherle.xml.PersistenceServiceException} is thrown
+     * by these methods instead.)
+     *
+     * @param extra New value of bound property {@code extra}.
+     *        This object must either implement the JavaBeans specification
+     *        or have direct support by the class
+     *        {@link java.beans.XMLEncoder}, such as strings and primitive
+     *        type wrapper objects.
+     * @since The TrueLicense Library Collection 1.19.
+     */
+    public void setExtra(Object extra) {
+        Object oldExtra = this.extra;
+        this.extra = extra;
+        firePropertyChange("extra", oldExtra, extra); // NOI18N
+    }
+
+    /**
+     * Returns {@code true} if and only if {@code object} is an instance of
+     * {@code LicenseContent} and their properties are considered equal.
+     * 
+     * @deprecated Not required.
+     */
+    public boolean equals(Object object) {
+        if (!(object instanceof LicenseContent))
+            return false;
+        final LicenseContent that = (LicenseContent) object;
+        return this.getConsumerAmount() == that.getConsumerAmount()
+                && equals(this.getConsumerType(), that.getConsumerType())
+                && equals(this.getExtra(), that.getExtra())
+                && equals(this.getHolder(), that.getHolder())
+                && equals(this.getInfo(), that.getInfo())
+                && equals(this.getIssued(), that.getIssued())
+                && equals(this.getIssuer(), that.getIssuer())
+                && equals(this.getNotAfter(), that.getNotAfter())
+                && equals(this.getNotBefore(), that.getNotBefore())
+                && equals(this.getSubject(), that.getSubject());
+    }
+
+    private static boolean equals(Object a, Object b) {
+        return a == b || null != a && a.equals(b);
+    }
+
+    /**
+     * Returns a hash code which is consistent with {@link #equals(Object)}.
+     * 
+     * @return A hash code which is consistent with {@link #equals(Object)}.
+     * @deprecated Not required.
+     */
+    public int hashCode() {
+        int c = 17;
+        c = 37 * c + getConsumerAmount();
+        c = 37 * c + hash(getConsumerType());
+        c = 37 * c + hash(getExtra());
+        c = 37 * c + hash(getHolder());
+        c = 37 * c + hash(getInfo());
+        c = 37 * c + hash(getIssued());
+        c = 37 * c + hash(getIssuer());
+        c = 37 * c + hash(getNotAfter());
+        c = 37 * c + hash(getNotBefore());
+        c = 37 * c + hash(getSubject());
+        return c;
+    }
+
+    private static int hash(Object object) {
+        return null == object ? 0 : object.hashCode();
+    }
+
+    /**
+     * Adds a PropertyChangeListener to the listener list.
+     *
+     * @param l The listener to add.
+     * @deprecated Not required.
+     */
+    public final void addPropertyChangeListener(PropertyChangeListener l) {
+        if (propertySupport == null)
+            propertySupport = new PropertyChangeSupport(this);
+        propertySupport.addPropertyChangeListener(l);
+    }
+
+    /**
+     * Removes a PropertyChangeListener from the listener list.
+     *
+     * @param l The listener to remove.
+     * @deprecated Not required.
+     */
+    public final void removePropertyChangeListener(PropertyChangeListener l) {
+        if (null != propertySupport)
+            propertySupport.removePropertyChangeListener(l);
+    }
+
+    /**
+     * @deprecated Not required.
+     */
+    protected final void firePropertyChange(PropertyChangeEvent evt) {
+        if (null != propertySupport)
+            propertySupport.firePropertyChange(evt);
+    }
+    
+    /**
+     * @deprecated Not required.
+     */
+    protected final void firePropertyChange(
+            String propertyName,
+            Object oldValue, Object newValue) {
+        if (null != propertySupport)
+            propertySupport.firePropertyChange(propertyName, oldValue, newValue);
+    }
+}
